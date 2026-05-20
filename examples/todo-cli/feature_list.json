@@ -1,0 +1,124 @@
+{
+  "project": "Todo CLI",
+  "created": "2026-05-20T15:00:00Z",
+  "features": [
+    {
+      "id": "F001",
+      "category": "setup",
+      "priority": 1,
+      "description": "Project scaffolding with build system and entry point",
+      "steps": [
+        "Verify project directories exist (src/, tests/)",
+        "Run go build ./... and confirm exit code 0",
+        "Run ./todo-cli --help and confirm usage output is printed"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F002",
+      "category": "data",
+      "priority": 2,
+      "description": "Add task to the todo list with a title",
+      "steps": [
+        "Run ./todo-cli add 'Buy groceries'",
+        "Verify output confirms task was added",
+        "Check internal storage contains the task with correct title"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F003",
+      "category": "data",
+      "priority": 3,
+      "description": "List all tasks with their completion status",
+      "steps": [
+        "Add two tasks: 'Task A' and 'Task B'",
+        "Run ./todo-cli list",
+        "Verify both tasks appear with pending status"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F004",
+      "category": "data",
+      "priority": 3,
+      "description": "Mark a task as completed by its ID",
+      "steps": [
+        "Add a task, note its ID",
+        "Run ./todo-cli complete <id>",
+        "Run ./todo-cli list and verify task shows as completed"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F005",
+      "category": "data",
+      "priority": 4,
+      "description": "Delete a task by its ID",
+      "steps": [
+        "Add two tasks",
+        "Run ./todo-cli delete <id-of-first>",
+        "Run ./todo-cli list and verify only second task remains"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F006",
+      "category": "data",
+      "priority": 5,
+      "description": "Persist tasks to disk so they survive process restart",
+      "steps": [
+        "Add a task",
+        "Kill the process and restart",
+        "Run ./todo-cli list and verify task is still present"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F007",
+      "category": "cli",
+      "priority": 6,
+      "description": "Show usage help for each subcommand",
+      "steps": [
+        "Run ./todo-cli add --help",
+        "Verify add-specific help is shown, not generic usage",
+        "Repeat for list, complete, delete subcommands"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F008",
+      "category": "testing",
+      "priority": 7,
+      "description": "Unit tests for all command handlers",
+      "steps": [
+        "Run go test ./... -v",
+        "Verify all tests pass with coverage > 80%"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F009",
+      "category": "cli",
+      "priority": 8,
+      "description": "Color-coded output: green for done, yellow for pending",
+      "steps": [
+        "Add completed and pending tasks",
+        "Run ./todo-cli list",
+        "Visually verify completed tasks are green, pending are yellow"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F010",
+      "category": "docs",
+      "priority": 9,
+      "description": "README with installation, usage, and examples",
+      "steps": [
+        "Read README.md",
+        "Verify it contains: install instructions, all subcommands documented, example output"
+      ],
+      "passes": true
+    }
+  ]
+}
