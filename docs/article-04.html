@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Article 4 — 测试驱动Agent：浏览器自动化与E2E验证</title>
+<link rel="stylesheet" href="base-dark.css">
+<style>
+:root { --c1:#C94D6D; --c1d:#9E2F4D; --c2:#378ADD; --c2d:#185FA5; }
+.hero h1 em { background:linear-gradient(90deg,var(--c1),var(--c2)); }
+blockquote { border-left:3px solid var(--c1d); padding:14px 20px; margin:16px 0; background:var(--bg2); border-radius:0 8px 8px 0; font-size:14px; color:var(--muted); line-height:1.8; }
+blockquote.eng { border-left-color:var(--c2d); }
+p { font-size:15px; line-height:1.85; color:var(--text); margin-bottom:14px; }
+h2 { font-size:24px; font-weight:700; margin:48px 0 16px; letter-spacing:-.02em; }
+h3 { font-size:18px; font-weight:600; margin:32px 0 12px; color:var(--text); }
+strong { font-weight:600; color:#fff; }
+code { font-family:var(--mono); font-size:13px; background:var(--bg3); padding:1px 6px; border-radius:4px; }
+hr { border:none; border-top:1px solid var(--border); margin:40px 0; }
+ul,ol { padding-left:24px; margin-bottom:14px; }
+li { font-size:14px; line-height:1.9; color:var(--muted); margin-bottom:4px; }
+table { width:100%; border-collapse:collapse; margin:20px 0; font-size:13px; }
+th { background:var(--bg2); padding:10px 14px; text-align:left; font-weight:500; color:var(--muted); border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+td { padding:11px 14px; border-bottom:1px solid var(--faint); line-height:1.6; }
+tr:hover td { background:rgba(255,255,255,.015); }
+.article-nav { display:flex; gap:12px; margin:40px 0 0; flex-wrap:wrap; }
+.article-nav a { padding:8px 16px; border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--muted); transition:all .15s; }
+.article-nav a:hover { border-color:var(--border2); color:var(--text); background:var(--bg3); }
+.article-nav a.an-active { border-color:var(--c1); color:var(--c1); }
+</style>
+</head>
+<body>
+<nav><div class="nav-inner">
+  <span class="nav-brand"><a href="index.html">Effective Harness</a> <span>· Articles</span></span>
+  <a class="nl" href="index.html">← Index</a>
+  <a class="nl" href="article-01.html">1</a>
+  <a class="nl" href="article-02.html">2</a>
+  <a class="nl" href="article-03.html">3</a>
+  <a class="nl" href="article-04.html">4</a>
+  <a class="nl" href="article-05.html">5</a>
+</div></nav>
+
+<div class="page">
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span>Article 4 · 测试与验证</div>
+  <h1>测试驱动Agent：<em>浏览器自动化与E2E验证</em></h1>
+  <p>Puppeteer MCP闭环、启动序列三阶段、截图验证回路——给Agent装上一双眼睛</p>
+</section>
+
+<section class="layer-sec">
+
+<h2>一、测试：长运行Agent最隐蔽的失败模式</h2>
+<blockquote class="eng">"One final major failure mode was Claude's tendency to mark a feature as complete without proper testing. Claude tended to make code changes, and even do testing with unit tests, but would fail to recognize that the feature didn't work end-to-end."</blockquote>
+<p>Agent会做出代码变更、运行单元测试，但<strong>测试通过了就认为特性完成了——即使端到端流程根本不工作</strong>。这是一个"局部正确但全局错误"的典型案例。</p>
+
+<h2>二、Puppeteer MCP：给Agent装上一双眼睛</h2>
+<blockquote class="eng">"Claude mostly did well at verifying features end-to-end once explicitly prompted to use browser automation tools and do all testing as a human user would."</blockquote>
+<p>关键变化发生在两个维度上：<strong>工具层面</strong>（浏览器自动化）和<strong>Prompt层面</strong>（像人类用户一样测试）。在架构上制造了一个闭环：</p>
+<p>Agent编写代码 → 重启开发服务器 → Puppeteer打开浏览器 → 执行用户操作 → 截图反馈 → Agent判断结果</p>
+
+<h2>三、会话启动中的测试协议</h2>
+<p>每个编码Agent打开会话后，第一件事不是开始写代码，而是跑一遍冒烟测试：</p>
+<ol>
+  <li>启动开发服务器（通过init.sh）</li>
+  <li>用Puppeteer打开应用</li>
+  <li>执行一个完整的核心流程</li>
+  <li>确认核心功能正常</li>
+</ol>
+<blockquote class="eng">"If the agent had instead started implementing a new feature, it would likely make the problem worse."</blockquote>
+<p>如果Agent跳过测试直接开发新特性，它可能在一个已经被破坏的基础上继续堆代码——让问题雪上加霜。</p>
+
+<h2>四、标准会话启动序列</h2>
+<table>
+<tr><th>阶段</th><th>步骤</th><th>目的</th></tr>
+<tr><td>定位</td><td>pwd → progress.txt → feature_list.json → git log</td><td>理解当前状态</td></tr>
+<tr><td>验证</td><td>init.sh → 启动服务器 → 端到端测试</td><td>确认环境干净</td></tr>
+<tr><td>行动</td><td>选定特性 → 实现 → 测试 → Commit → 更新进度</td><td>增量推进</td></tr>
+</table>
+
+<h2>五、工具局限</h2>
+<blockquote class="eng">"Some issues remain, like limitations to Claude's vision and to browser automation tools. For example, Claude can't see browser-native alert modals through the Puppeteer MCP."</blockquote>
+<p>浏览器原生模态框不可见、视觉模型精度有限、时序问题难捕获——这些都是实际的工程限制，但自动化测试工具在当前水平上已经能捕获80%以上的bug。</p>
+
+<h2>六、三层测试方法</h2>
+<ol>
+  <li><strong>自动化回归</strong>（init.sh冒烟测试）——每次会话启动时执行</li>
+  <li><strong>特性验证</strong>（Puppeteer端到端测试）——每个特性实现后执行</li>
+  <li><strong>视觉确认</strong>（截图回路）——Agent查看浏览器截图，判断视觉呈现</li>
+</ol>
+
+<hr>
+<div class="article-nav">
+  <a href="article-03.html">← 3. 环境工程</a>
+  <a class="an-active" href="article-04.html">4. 测试驱动Agent</a>
+  <a href="article-05.html">5. 未来方向 →</a>
+</div>
+</section>
+<div class="footer">Effective Harness · <a href="index.html">Home</a> · <a href="https://github.com/1998x-stack/effective-harness">GitHub</a></div>
+</div>
+</body>
+</html>

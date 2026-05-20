@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Article 1 — 长运行AI Agent的根本困境</title>
+<link rel="stylesheet" href="base-dark.css">
+<style>
+:root { --c1:#7755E0; --c1d:#4C2DB0; --c2:#1D9E75; --c2d:#0F6E56; }
+.hero h1 em { background:linear-gradient(90deg,var(--c1),var(--c2)); }
+blockquote { border-left:3px solid var(--c1d); padding:14px 20px; margin:16px 0; background:var(--bg2); border-radius:0 8px 8px 0; font-size:14px; color:var(--muted); line-height:1.8; }
+blockquote.eng { border-left-color:var(--c2d); }
+p { font-size:15px; line-height:1.85; color:var(--text); margin-bottom:14px; }
+h2 { font-size:24px; font-weight:700; margin:48px 0 16px; letter-spacing:-.02em; }
+h3 { font-size:18px; font-weight:600; margin:32px 0 12px; color:var(--text); }
+strong { font-weight:600; color:#fff; }
+code { font-family:var(--mono); font-size:13px; background:var(--bg3); padding:1px 6px; border-radius:4px; }
+hr { border:none; border-top:1px solid var(--border); margin:40px 0; }
+ul,ol { padding-left:24px; margin-bottom:14px; }
+li { font-size:14px; line-height:1.9; color:var(--muted); margin-bottom:4px; }
+li strong { color:var(--text); }
+.article-nav { display:flex; gap:12px; margin:40px 0 0; flex-wrap:wrap; }
+.article-nav a { padding:8px 16px; border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--muted); transition:all .15s; }
+.article-nav a:hover { border-color:var(--border2); color:var(--text); background:var(--bg3); }
+.article-nav a.an-active { border-color:var(--c1); color:var(--c1); }
+</style>
+</head>
+<body>
+<nav><div class="nav-inner">
+  <span class="nav-brand"><a href="index.html">Effective Harness</a> <span>· Articles</span></span>
+  <a class="nl" href="index.html">← Index</a>
+  <a class="nl" href="article-01.html">1</a>
+  <a class="nl" href="article-02.html">2</a>
+  <a class="nl" href="article-03.html">3</a>
+  <a class="nl" href="article-04.html">4</a>
+  <a class="nl" href="article-05.html">5</a>
+</div></nav>
+
+<div class="page">
+
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span>Article 1 · 问题定义</div>
+  <h1>长运行AI Agent的<em>根本困境</em></h1>
+  <p>为什么即使最强的模型，单独一个高层级prompt也无法构建生产级应用？</p>
+  <div class="tag-row">
+    <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" style="font-size:12px;color:var(--muted);">原文出处 → Anthropic Engineering Blog</a>
+  </div>
+</section>
+
+<section class="layer-sec">
+<h2>一、问题的提出</h2>
+<p>随着AI Agent能力的不断提升，开发者越来越希望将复杂任务——耗时数小时甚至数天的工程工作——交给Agent完成。然而，让Agent在跨越多个上下文窗口时保持一致的进展，至今仍是一个未解决的开放问题。Anthropic在其工程博客中一针见血地指出了问题的本质：</p>
+
+<blockquote class="eng">"The core challenge of long-running agents is that they must work in discrete sessions, and each new session begins with no memory of what came before."</blockquote>
+
+<p>翻译过来就是：<strong>长运行Agent的核心挑战在于，它们必须在离散的会话中工作，而每一次新会话开始时，对之前发生的事情毫无记忆。</strong></p>
+
+<h2>二、换班工程师：一个精准的类比</h2>
+<p>Anthropic用一个极其形象的类比来描述这一困境：</p>
+
+<blockquote class="eng">"Imagine a software project staffed by engineers working in shifts, where each new engineer arrives with no memory of what happened on the previous shift."</blockquote>
+
+<p>想象一个软件项目由轮班工程师负责，<strong>每一个新工程师到岗时，对上一班发生了什么一无所知</strong>。没有交接文档，没有工单系统，没有进度同步——他只能翻看代码仓库，试图从零散的提交记录中拼凑出"现在到底做到哪了"。</p>
+
+<p>这正是当前AI Agent在多会话场景下的真实处境。上下文窗口有限，而大多数复杂项目无法在单个窗口内完成。Agent需要在会话之间架起一座桥梁。</p>
+
+<h2>三、压缩上下文是不够的</h2>
+<p>有人可能会问：Claude Agent SDK不是已经有<strong>compaction</strong>功能了吗？然而Anthropic的实践结论是明确的反面：</p>
+
+<blockquote class="eng">"However, compaction isn't sufficient. Out of the box, even a frontier coding model like Opus 4.5 will fall short of building a production-quality web app if it's only given a high-level prompt."</blockquote>
+
+<p><strong>光靠压缩是不够的。</strong>即使使用最前沿的编码模型Opus 4.5，如果只给它一个高层级prompt，它仍然无法构建出一个生产质量的Web应用。这个结论极为关键：</p>
+<ul>
+  <li><strong>Compaction解决的是"记忆压缩"问题，而非"记忆传递"问题。</strong></li>
+  <li><strong>问题的本质不是模型能力不足</strong>——而是<strong>工程管道的设计缺陷</strong>。</li>
+</ul>
+
+<h2>四、Claude的两大失败模式</h2>
+
+<h3>失败模式一：试图一次做完所有事</h3>
+<blockquote class="eng">"The agent tended to try to do too much at once — essentially to attempt to one-shot the app. Often, this led to the model running out of context in the middle of its implementation."</blockquote>
+<p>Agent倾向于一次性完成整个应用，导致在实现中途耗尽上下文窗口，把下一个会话扔给一个功能实现了一半、没有文档的烂摊子。</p>
+
+<h3>失败模式二：过早宣告胜利</h3>
+<blockquote class="eng">"A second failure mode would often occur later in a project. After some features had already been built, a later agent instance would look around, see that progress had been made, and declare the job done."</blockquote>
+<p>一个后来的Agent实例环顾四周，看到一些进展已经完成，就<strong>宣告任务完成了</strong>——它不知道还有150个特性尚未实现。</p>
+
+<h2>五、干净状态的定义</h2>
+<blockquote class="eng">"By 'clean state' we mean the kind of code that would be appropriate for merging to a main branch: there are no major bugs, the code is orderly and well-documented."</blockquote>
+<p><strong>干净状态 = 可以合并到主分支的代码质量</strong>：没有重大bug、代码有序且文档齐全、一个新开发者可以直接开始新功能开发，而不必先清理上一个开发者留下的烂摊子。</p>
+
+<h2>六、解决方案的两根支柱</h2>
+<ol>
+  <li><strong>Initializer agent</strong>：首次会话，搭建环境地基——<code>init.sh</code>、<code>.claude-progress.txt</code>、初始git commit</li>
+  <li><strong>Coding agent</strong>：每次后续会话，增量推进——代码变更 + 结构化进度更新</li>
+</ol>
+<blockquote class="eng">"Inspiration for these practices came from knowing what effective software engineers do every day."</blockquote>
+<p>这些实践的灵感来源于<strong>高效软件工程师每天都在做什么</strong>——不是什么高深的理论，就是把人类的优秀工程实践搬到了Agent的工作流中。</p>
+
+<hr>
+
+<div class="article-nav">
+  <a class="an-active" href="article-01.html">1. 根本困境</a>
+  <a href="article-02.html">2. 双Agent模式 →</a>
+  <a href="article-03.html">3. 环境工程</a>
+  <a href="article-04.html">4. 测试驱动Agent</a>
+  <a href="article-05.html">5. 未来方向</a>
+</div>
+
+</section>
+
+<div class="footer">Effective Harness · <a href="index.html">Home</a> · <a href="https://github.com/1998x-stack/effective-harness">GitHub</a></div>
+</div>
+</body>
+</html>

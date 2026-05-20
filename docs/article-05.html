@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Article 5 — 从Web开发到通用Agent：未来方向</title>
+<link rel="stylesheet" href="base-dark.css">
+<style>
+:root { --c1:#1D9E75; --c1d:#0F6E56; --c2:#7755E0; --c2d:#4C2DB0; --c3:#E07B39; }
+.hero h1 em { background:linear-gradient(90deg,var(--c1),var(--c3)); }
+blockquote { border-left:3px solid var(--c1d); padding:14px 20px; margin:16px 0; background:var(--bg2); border-radius:0 8px 8px 0; font-size:14px; color:var(--muted); line-height:1.8; }
+blockquote.eng { border-left-color:var(--c2d); }
+p { font-size:15px; line-height:1.85; color:var(--text); margin-bottom:14px; }
+h2 { font-size:24px; font-weight:700; margin:48px 0 16px; letter-spacing:-.02em; }
+h3 { font-size:18px; font-weight:600; margin:32px 0 12px; color:var(--text); }
+strong { font-weight:600; color:#fff; }
+code { font-family:var(--mono); font-size:13px; background:var(--bg3); padding:1px 6px; border-radius:4px; }
+hr { border:none; border-top:1px solid var(--border); margin:40px 0; }
+ul,ol { padding-left:24px; margin-bottom:14px; }
+li { font-size:14px; line-height:1.9; color:var(--muted); margin-bottom:4px; }
+table { width:100%; border-collapse:collapse; margin:20px 0; font-size:13px; }
+th { background:var(--bg2); padding:10px 14px; text-align:left; font-weight:500; color:var(--muted); border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+td { padding:11px 14px; border-bottom:1px solid var(--faint); line-height:1.6; }
+tr:hover td { background:rgba(255,255,255,.015); }
+.article-nav { display:flex; gap:12px; margin:40px 0 0; flex-wrap:wrap; }
+.article-nav a { padding:8px 16px; border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--muted); transition:all .15s; }
+.article-nav a:hover { border-color:var(--border2); color:var(--text); background:var(--bg3); }
+.article-nav a.an-active { border-color:var(--c1); color:var(--c1); }
+</style>
+</head>
+<body>
+<nav><div class="nav-inner">
+  <span class="nav-brand"><a href="index.html">Effective Harness</a> <span>· Articles</span></span>
+  <a class="nl" href="index.html">← Index</a>
+  <a class="nl" href="article-01.html">1</a>
+  <a class="nl" href="article-02.html">2</a>
+  <a class="nl" href="article-03.html">3</a>
+  <a class="nl" href="article-04.html">4</a>
+  <a class="nl" href="article-05.html">5</a>
+</div></nav>
+
+<div class="page">
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span>Article 5 · 展望</div>
+  <h1>从Web开发到<em>通用Agent</em>：未来方向</h1>
+  <p>单Agent还是多Agent？泛化到科学研究与金融建模？六条可迁移设计原则</p>
+</section>
+
+<section class="layer-sec">
+
+<h2>一、当前方案的成就与边界</h2>
+<table>
+<tr><th>组件</th><th>解决的核心问题</th></tr>
+<tr><td>双Agent架构</td><td>记忆断层 + 规模失控</td></tr>
+<tr><td>特性列表JSON</td><td>目标模糊</td></tr>
+<tr><td>Git工作流</td><td>状态污染</td></tr>
+<tr><td>进度文件</td><td>记忆断层</td></tr>
+<tr><td>init.sh + Puppeteer</td><td>启动摩擦 + 测试不足</td></tr>
+</table>
+<blockquote class="eng">"This research demonstrates one possible set of solutions. However, there remain open questions."</blockquote>
+
+<h2>二、开放问题一：单Agent还是多Agent？</h2>
+<blockquote class="eng">"It's still unclear whether a single, general-purpose coding agent performs best, or if better performance can be achieved through a multi-agent architecture."</blockquote>
+<p>原文提出了一个自然的推演方向——按软件开发生命周期中的角色进行Agent专业化：</p>
+<ul>
+  <li><strong>测试Agent</strong>——专注于端到端测试、边界条件、回归验证</li>
+  <li><strong>质量保证Agent</strong>——检查代码风格、性能、安全、架构一致性</li>
+  <li><strong>代码清理Agent</strong>——消除技术债务、统一代码风格</li>
+</ul>
+<p>但多Agent架构有隐性成本：协调开销、状态一致性、故障传播、调试复杂度。两Agent方案的优雅之处正在于它刚好够用——任何向多Agent架构的跃迁，都必须用实验数据证明收益超过这些新增成本。</p>
+
+<h2>三、开放问题二：从Web开发到通用领域</h2>
+<blockquote class="eng">"This demo is optimized for full-stack web app development. A future direction is to generalize these findings to other fields — for example, scientific research or financial modeling."</blockquote>
+<p>科学研究和金融建模各有独特挑战：目标可能随实验结果漂移、测试反馈回路可能长达数天、代码与结果的关系可能是非确定性的。但核心方法论是可以迁移的。</p>
+
+<h2>四、六条可迁移设计原则</h2>
+<ol>
+  <li><strong>记忆外化</strong>——把状态从Agent的上下文窗口外化到文件系统中</li>
+  <li><strong>不可变规约</strong>——Agent的行为边界必须由不可变的规约定义</li>
+  <li><strong>增量契约</strong>——每个Agent会话必须在结束时留下定义良好的完成状态</li>
+  <li><strong>验证优先于推进</strong>——每次会话的第一个动作不是向前推进，而是向后验证</li>
+  <li><strong>人类工具即Agent工具</strong>——不要为Agent发明新的基础设施</li>
+  <li><strong>简单至上</strong>——在实证数据证明收益之前，不要增加复杂度</li>
+</ol>
+
+<h2>五、结语</h2>
+<blockquote class="eng">"This work reflects the collective efforts of several teams across Anthropic who made it possible for Claude to safely do long-horizon autonomous software engineering."</blockquote>
+<p>Anthropic的博文不是一篇发布完美解决方案的论文，而是一份<strong>来自前线的工程笔记</strong>。它最有价值的部分不是具体的JSON格式或Puppeteer配置，而是它展示的方法论态度：从观察失败模式开始，从人类工程师的日常实践中提取灵感，保持方案极简，坦诚标记开放问题。</p>
+
+<hr>
+<div class="article-nav">
+  <a href="article-04.html">← 4. 测试驱动Agent</a>
+  <a class="an-active" href="article-05.html">5. 未来方向</a>
+  <a href="index.html">Home →</a>
+</div>
+</section>
+<div class="footer">Effective Harness · <a href="index.html">Home</a> · <a href="https://github.com/1998x-stack/effective-harness">GitHub</a></div>
+</div>
+</body>
+</html>

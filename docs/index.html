@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Effective Harness — Two-Agent AI Coding Architecture</title>
+<link rel="stylesheet" href="base-dark.css">
+<style>
+:root {
+  --c1:#7755E0; --c1d:#4C2DB0;
+  --c2:#1D9E75; --c2d:#0F6E56;
+  --c3:#E07B39; --c3d:#B85A20;
+  --c4:#378ADD; --c4d:#185FA5;
+  --c5:#C94D6D; --c5d:#9E2F4D;
+}
+.hero h1 em { background:linear-gradient(90deg,var(--c1),var(--c2)); }
+.ltag.li { color:var(--c1); border-color:rgba(119,85,224,.4); background:rgba(119,85,224,.08); }
+.ltag.le { color:var(--c2); border-color:rgba(29,158,117,.4); background:rgba(29,158,117,.08); }
+.ltag.lf { color:var(--c3); border-color:rgba(224,123,57,.4); background:rgba(224,123,57,.08); }
+.ltag.la { color:var(--c5); border-color:rgba(201,77,109,.4); background:rgba(201,77,109,.08); }
+.flow-box { cursor:default; }
+.flow-box:nth-child(1) .fb-tag { color:var(--c1); }
+.flow-box:nth-child(3) .fb-tag { color:var(--c2); }
+.flow-box:nth-child(5) .fb-tag { color:var(--c3); }
+.lb-blue { border-left-color:var(--c4)!important; }
+.lb-green { border-left-color:var(--c2)!important; }
+.lb-purple { border-left-color:var(--c1)!important; }
+.lb-orange { border-left-color:var(--c3)!important; }
+.lb-pink { border-left-color:var(--c5)!important; }
+.si-green { color:var(--c1d); background:var(--c1); }
+.si-blue { color:var(--c4d); background:var(--c4); }
+.step-num { font-family:var(--font); }
+a.article-card {
+  display:block; background:var(--bg2); border:1px solid var(--border);
+  border-radius:10px; padding:20px 24px; transition:border-color .2s,background .15s,transform .15s;
+}
+a.article-card:hover { border-color:var(--border2); background:var(--bg3); transform:translateY(-2px); }
+.ac-num { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:4px; }
+.ac-title { font-size:17px; font-weight:600; color:var(--text); margin-bottom:8px; line-height:1.4; }
+.ac-desc { font-size:13px; color:var(--muted); line-height:1.6; }
+.article-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:700px){ .article-grid{grid-template-columns:1fr;} }
+.hero p.sub { max-width:720px; }
+.quickstart .codeblock { margin-bottom:12px; }
+</style>
+</head>
+<body>
+<nav><div class="nav-inner">
+  <span class="nav-brand">Effective Harness <span>· AI Coding Architecture</span></span>
+  <a class="nl" href="#arch">Architecture</a>
+  <a class="nl" href="#features">Feature List</a>
+  <a class="nl" href="#articles">Articles</a>
+  <a class="nl" href="#quickstart">Quick Start</a>
+  <a class="nl" href="https://github.com/1998x-stack/effective-harness" target="_blank" style="margin-left:auto;">GitHub ↗</a>
+</div></nav>
+
+<div class="page">
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span>Based on Anthropic Engineering Research · 2026</div>
+  <h1>Effective <em>Harness</em> for Long‑Running AI Agents</h1>
+  <p class="sub">A lightweight, zero-config two-agent architecture that enables AI coding agents to make consistent incremental progress across hundreds of context windows — one feature per session, clean state every time.</p>
+  <div class="tag-row">
+    <span class="ltag li">Initializer Agent</span>
+    <span class="ltag le">Execute Agent</span>
+    <span class="ltag lf">Feature-Driven</span>
+    <span class="ltag la">OpenCode + Claude CLI</span>
+  </div>
+</section>
+
+<!-- Flow Overview -->
+<section class="flow" id="arch">
+  <div class="sec-label">Architecture</div>
+  <div class="flow-track">
+    <div class="flow-box">
+      <div class="fb-tag">SESSION 0</div>
+      <div class="fb-name">Initializer Agent</div>
+      <div class="fb-sub">Sets up project environment: feature list, init script, progress log, git repo</div>
+      <div class="fb-file">harness/prompts/init.md</div>
+    </div>
+    <div class="flow-arrow"><div class="arr-icon">→</div><div class="arr-text">Filesystem Artifacts</div></div>
+    <div class="flow-box">
+      <div class="fb-tag">SESSION 1…N</div>
+      <div class="fb-name">Execute Agent</div>
+      <div class="fb-sub">Startup check → pick one feature → implement → verify E2E → commit → clean state</div>
+      <div class="fb-file">harness/prompts/execute.md</div>
+    </div>
+    <div class="flow-arrow"><div class="arr-icon">↻</div><div class="arr-text">Repeat until all features pass</div></div>
+    <div class="flow-box">
+      <div class="fb-tag">DONE</div>
+      <div class="fb-name">Project Complete</div>
+      <div class="fb-sub">All features marked passing. Code merge-ready. Progress fully documented.</div>
+      <div class="fb-file">feature_list.json (all passes:true)</div>
+    </div>
+  </div>
+</section>
+
+<!-- Session Protocol -->
+<section class="layer-sec" id="session">
+  <div class="layer-hdr">
+    <div class="layer-id-badge si-green">LAUNCH</div>
+    <div class="layer-title">Execute Agent Session Protocol</div>
+  </div>
+  <div class="layer-def lb-green">Every session follows a strict 7-step startup sequence before touching any code — verification before progression.</div>
+  <ol class="steps">
+    <li><span class="step-num si-green">1</span><strong>pwd</strong> — confirm working directory</li>
+    <li><span class="step-num si-green">2</span><strong>Read .claude-progress.txt</strong> — understand session history</li>
+    <li><span class="step-num si-green">3</span><strong>Read feature_list.json</strong> — find highest-priority pending feature</li>
+    <li><span class="step-num si-green">4</span><strong>git log --oneline -20</strong> — review recent code changes</li>
+    <li><span class="step-num si-green">5</span><strong>./init.sh</strong> — start dev environment and verify smoke test</li>
+    <li><span class="step-num si-green">6</span><strong>git status --porcelain</strong> — detect dirty tree from crashed session</li>
+    <li><span class="step-num si-green">7</span><strong>Select feature + implement → verify → commit → clean exit</strong></li>
+  </ol>
+</section>
+
+<!-- Feature List -->
+<section class="layer-sec" id="features">
+  <div class="layer-hdr">
+    <div class="layer-id-badge si-blue">SPEC</div>
+    <div class="layer-title">Feature List Format <small>JSON</small></div>
+  </div>
+  <div class="layer-def lb-blue">Every feature starts <code>passes: false</code> — guilty until proven working. Execute Agent may ONLY toggle <code>passes</code>; all other fields are immutable.</div>
+  <div class="codeblock">
+    <div class="cb-head"><span class="cb-dot" style="background:#f85149"></span><span class="cb-dot" style="background:#e3b341"></span><span class="cb-dot" style="background:#28c840"></span> feature_list.json</div>
+    <div class="cb-body">{
+  <span class="str">"project"</span>: <span class="str">"Todo CLI"</span>,
+  <span class="str">"features"</span>: [
+    {
+      <span class="str">"id"</span>:    <span class="str">"F001"</span>,
+      <span class="str">"category"</span>: <span class="str">"setup"</span>,
+      <span class="str">"priority"</span>: <span class="num">1</span>,
+      <span class="str">"description"</span>: <span class="str">"Project scaffolding..."</span>,
+      <span class="str">"steps"</span>: [
+        <span class="str">"Run go build ./... and confirm exit 0"</span>,
+        <span class="str">"Run ./app --help and verify usage output"</span>
+      ],
+      <span class="str">"passes"</span>: <span class="kw">false</span>
+    }
+  ]
+}</div>
+  </div>
+</section>
+
+<!-- Articles -->
+<section class="layer-sec" id="articles">
+  <div class="layer-hdr">
+    <div class="layer-id-badge si-green">DEEP DIVE</div>
+    <div class="layer-title">Article Series <small>5-part deep analysis</small></div>
+  </div>
+  <div class="layer-def lb-green">Based on Anthropic's "Effective harnesses for long-running agents" — heavy original quotes, deep technical analysis of every design decision.</div>
+  <div class="article-grid">
+    <a class="article-card" href="article-01.html">
+      <div class="ac-num">Article 1</div>
+      <div class="ac-title">长运行AI Agent的根本困境</div>
+      <div class="ac-desc">换班工程师类比、两大失败模式、为什么Compaction不够</div>
+    </a>
+    <a class="article-card" href="article-02.html">
+      <div class="ac-num">Article 2</div>
+      <div class="ac-title">双Agent模式：初始化器与编码器</div>
+      <div class="ac-desc">角色分离、单一职责原则、结束协议、极简设计哲学</div>
+    </a>
+    <a class="article-card" href="article-03.html">
+      <div class="ac-num">Article 3</div>
+      <div class="ac-title">环境工程：特性列表、Git与进度追踪</div>
+      <div class="ac-desc">JSON vs Markdown、passes字段语义、Git双向价值、设计原则</div>
+    </a>
+    <a class="article-card" href="article-04.html">
+      <div class="ac-num">Article 4</div>
+      <div class="ac-title">测试驱动Agent：浏览器自动化与E2E验证</div>
+      <div class="ac-desc">Puppeteer MCP闭环、启动序列三阶段、截图验证回路、工具局限</div>
+    </a>
+    <a class="article-card" href="article-05.html">
+      <div class="ac-num">Article 5</div>
+      <div class="ac-title">从Web开发到通用Agent：未来方向</div>
+      <div class="ac-desc">单/多Agent取舍、科学/金融领域泛化、六条可迁移设计原则</div>
+    </a>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section class="layer-sec quickstart" id="quickstart">
+  <div class="layer-hdr">
+    <div class="layer-id-badge si-blue">GET STARTED</div>
+    <div class="layer-title">Quick Start</div>
+  </div>
+  <div class="codeblock">
+    <div class="cb-head"><span class="cb-dot" style="background:#f85149"></span><span class="cb-dot" style="background:#e3b341"></span><span class="cb-dot" style="background:#28c840"></span> terminal</div>
+    <div class="cb-body"><span class="cm"># 1. Copy harness into your project</span>
+cp -r harness/ your-project/<span class="op"> && </span>cd your-project/
+
+<span class="cm"># 2. Set API key (DeepSeek recommended)</span>
+<span class="kw">export</span> DEEPSEEK_API_KEY=<span class="str">"sk-..."</span>
+
+<span class="cm"># 3. First session — init</span>
+./harness/run.sh <span class="str">"build a REST API for a todo app"</span>
+
+<span class="cm"># 4. Subsequent sessions — execute</span>
+./harness/run.sh
+./harness/run.sh
+<span class="cm"># ... repeat until all features pass</span>
+
+<span class="cm"># Or: auto-run until complete</span>
+./harness/auto.sh</div>
+  </div>
+</section>
+
+<!-- Design Principles -->
+<section class="layer-sec">
+  <div class="layer-hdr">
+    <div class="layer-id-badge si-green">PRINCIPLES</div>
+    <div class="layer-title">Six Design Principles</div>
+  </div>
+  <table class="stab">
+    <tr><th>Principle</th><th>Implementation</th></tr>
+    <tr><td>Memory externalization</td><td>State lives in filesystem (JSON, text, git), not agent context</td></tr>
+    <tr><td>Immutable specification</td><td>Feature list write-once; only <code>passes</code> field can change</td></tr>
+    <tr><td>Incremental contract</td><td>One feature per session, merge-ready state every exit</td></tr>
+    <tr><td>Verification first</td><td>Smoke test every session before implementing new features</td></tr>
+    <tr><td>Human tools = agent tools</td><td>Git, JSON, shell scripts — no proprietary infrastructure</td></tr>
+    <tr><td>Simplicity first</td><td>Two prompt files, one script, zero configuration</td></tr>
+  </table>
+</section>
+
+<div class="footer">Effective Harness · <a href="https://github.com/1998x-stack/effective-harness">GitHub</a> · Based on <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Anthropic Engineering</a></div>
+
+</div>
+</body>
+</html>

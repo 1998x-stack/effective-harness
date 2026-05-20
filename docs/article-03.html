@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Article 3 — 环境工程：特性列表、Git与进度追踪</title>
+<link rel="stylesheet" href="base-dark.css">
+<style>
+:root { --c1:#378ADD; --c1d:#185FA5; --c2:#E07B39; --c2d:#B85A20; }
+.hero h1 em { background:linear-gradient(90deg,var(--c1),var(--c2)); }
+blockquote { border-left:3px solid var(--c1d); padding:14px 20px; margin:16px 0; background:var(--bg2); border-radius:0 8px 8px 0; font-size:14px; color:var(--muted); line-height:1.8; }
+blockquote.eng { border-left-color:var(--c2d); }
+p { font-size:15px; line-height:1.85; color:var(--text); margin-bottom:14px; }
+h2 { font-size:24px; font-weight:700; margin:48px 0 16px; letter-spacing:-.02em; }
+h3 { font-size:18px; font-weight:600; margin:32px 0 12px; color:var(--text); }
+strong { font-weight:600; color:#fff; }
+code { font-family:var(--mono); font-size:13px; background:var(--bg3); padding:1px 6px; border-radius:4px; }
+hr { border:none; border-top:1px solid var(--border); margin:40px 0; }
+ul,ol { padding-left:24px; margin-bottom:14px; }
+li { font-size:14px; line-height:1.9; color:var(--muted); margin-bottom:4px; }
+table { width:100%; border-collapse:collapse; margin:20px 0; font-size:13px; }
+th { background:var(--bg2); padding:10px 14px; text-align:left; font-weight:500; color:var(--muted); border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+td { padding:11px 14px; border-bottom:1px solid var(--faint); line-height:1.6; }
+tr:hover td { background:rgba(255,255,255,.015); }
+.article-nav { display:flex; gap:12px; margin:40px 0 0; flex-wrap:wrap; }
+.article-nav a { padding:8px 16px; border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--muted); transition:all .15s; }
+.article-nav a:hover { border-color:var(--border2); color:var(--text); background:var(--bg3); }
+.article-nav a.an-active { border-color:var(--c1); color:var(--c1); }
+</style>
+</head>
+<body>
+<nav><div class="nav-inner">
+  <span class="nav-brand"><a href="index.html">Effective Harness</a> <span>· Articles</span></span>
+  <a class="nl" href="index.html">← Index</a>
+  <a class="nl" href="article-01.html">1</a>
+  <a class="nl" href="article-02.html">2</a>
+  <a class="nl" href="article-03.html">3</a>
+  <a class="nl" href="article-04.html">4</a>
+  <a class="nl" href="article-05.html">5</a>
+</div></nav>
+
+<div class="page">
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span>Article 3 · 脚手架设计</div>
+  <h1>环境工程：<em>特性列表、Git与进度追踪</em></h1>
+  <p>JSON vs Markdown、passes字段语义、Git的双向价值——三个组件解决三个问题</p>
+</section>
+
+<section class="layer-sec">
+<h2>一、三个组件，三个问题</h2>
+<table>
+<tr><th>组件</th><th>解决的问题</th><th>本质</th></tr>
+<tr><td>特性列表</td><td>目标模糊：Agent不知道"做完"是什么意思</td><td>"什么是完整"的唯一定义</td></tr>
+<tr><td>Git工作流</td><td>状态污染：环境在会话间退化</td><td>代码质量的版本锚点</td></tr>
+<tr><td>进度文件</td><td>记忆断层：新Agent不知道之前发生了什么</td><td>Agent间的交接文档</td></tr>
+</table>
+
+<h2>二、特性列表：完整性的唯一定义</h2>
+<blockquote class="eng">"We prompted the initializer agent to write a comprehensive file of feature requirements expanding on the user's initial prompt. In the claude.ai clone example, this meant over 200 features."</blockquote>
+<p>初始化Agent基于用户的简短prompt展开出一份详尽的特性需求文件，每个特性条目具有以下结构：</p>
+<ul>
+  <li><code>category</code>：分类标记，用于优先级排序和分组</li>
+  <li><code>description</code>：面向人类的特性描述，简洁明了</li>
+  <li><code>steps</code>：<strong>可执行的具体验证步骤</strong>——不是抽象需求，而是可操作的测试脚本</li>
+  <li><code>passes</code>：<strong>唯一的可变状态</strong>，所有特性初始为false</li>
+</ul>
+
+<h3>JSON vs Markdown：格式选择的教训</h3>
+<blockquote class="eng">"After some experimentation, we landed on using JSON for this, as the model is less likely to inappropriately change or overwrite JSON files compared to Markdown files."</blockquote>
+<p>Agent在处理Markdown文件时有倾向去"重写"或"润色"其内容——这是语言模型在文本生成任务上的天性。而JSON的结构化特性使得Agent更倾向于<strong>只修改特定字段</strong>（如passes），而非重写整个文件。</p>
+
+<h2>三、Git工作流：代码质量的版本锚点</h2>
+<p>Git在长运行Agent场景中承担了双重角色：</p>
+<ul>
+  <li><strong>回溯工具</strong>：Agent犯错时，git revert让后续Agent能够一键回到上一个已知的干净状态</li>
+  <li><strong>交接工具</strong>：git log --oneline -20让下一个Agent瞬间看到"最近20个会话做了什么"</li>
+</ul>
+
+<h2>四、四核心设计原则</h2>
+<ol>
+  <li><strong>不可变优于可变</strong>——特性列表的字段结构是不可变的，Agent只能改passes字段</li>
+  <li><strong>默认否定优于默认肯定</strong>——所有特性初始为passes:false，"有罪推定"</li>
+  <li><strong>人类工具优于专用系统</strong>——Git、文本文件、JSON，不依赖任何特定的Agent框架</li>
+  <li><strong>结构化优于非结构化</strong>——JSON让Agent的行为更容易被约束</li>
+</ol>
+
+<blockquote class="eng">"Inspiration for these practices came from knowing what effective software engineers do every day."</blockquote>
+
+<hr>
+<div class="article-nav">
+  <a href="article-02.html">← 2. 双Agent模式</a>
+  <a class="an-active" href="article-03.html">3. 环境工程</a>
+  <a href="article-04.html">4. 测试驱动Agent →</a>
+  <a href="article-05.html">5. 未来方向</a>
+</div>
+</section>
+<div class="footer">Effective Harness · <a href="index.html">Home</a> · <a href="https://github.com/1998x-stack/effective-harness">GitHub</a></div>
+</div>
+</body>
+</html>
