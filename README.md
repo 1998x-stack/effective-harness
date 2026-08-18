@@ -2,7 +2,11 @@
 
 A lightweight, zero-config CLI wrapper that implements Anthropic's [two-agent pattern](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) for long-running AI coding sessions. One harness per project — copy it in, describe your project, and let agents make incremental progress across sessions.
 
-## How It Works
+> 中文一句话：零配置的 bash wrapper，把 Anthropic 的「双 Agent 模式」（初始化器 + 编码器）落地为每项目一份的可拷贝脚本——跨会话语义下关掉，只靠文件系统产物（feature_list/init.sh/进度日志）推进。
+
+## How It Works（工作原理）
+
+> 中文要点：首次运行由 Initializer Agent 建基线；后续运行由 Execute Agent 每会话只推进一个 feature，退出时保持代码可合并状态。
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -30,6 +34,8 @@ A lightweight, zero-config CLI wrapper that implements Anthropic's [two-agent pa
 **One feature per session. Clean state every time. No memory between sessions — just filesystem artifacts.**
 
 ## Quick Start
+
+> 中文要点：把 `harness/` 拷进项目 → 首跑带 prompt 初始化 → 之后直接跑 `./harness/run.sh` 增量推进，直到全部 feature 通过。CLI 自动探测 opencode / claude。
 
 ### 1. Copy the harness into your project
 
@@ -152,6 +158,20 @@ your-project/
 - `steps[]` are executable test instructions, not vague descriptions
 - Priority 1 = highest, assigned by dependency order
 - 30-100+ features for moderate projects, 200+ for complex ones
+
+## The Harness Lineage（本系定位）
+
+`effective-harness` 与演进线中其他成员互补：它**不新增执行引擎**，而是把 Anthropic 的可行性验证包装成可拷贝、零配置的运行脚本：
+
+| 成员 | 定位 | effective-harness 的关系 |
+|------|------|--------------------------|
+| `tiny-harness` | 最小执行引擎（loop + tools） | effective 可作为其上层编排脚本；也可独立零依赖使用 |
+| `mid-harness` | 可扩展引擎（hooks / MCP） | 面向引擎内部扩展；effective 想引擎外部的会话编排 |
+| **effective-harness** | 生产 wrapper：双 Agent 跨会话 | --- 本仓库（bash 脚本 + 2 个 prompt） |
+| `agent-loop` | 双 Agent 编排（初始化器/编码器） | 理念同源：都是 initializer + executor |
+| `auto.sh` | 自动循环直到全部 feature 通过 | effective 的自动化版 |
+
+> 同一理念在不同粒度：effective-harness 用「bash + 文件系统 artifact」零依赖实现，agent-loop 用 Python 包 + CLI + dashboard 实现。
 
 ## Design Principles
 
