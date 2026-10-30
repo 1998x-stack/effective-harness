@@ -1,0 +1,55 @@
+{
+  "goal": "Repair an existing Python web application without breaking the public API.",
+  "criteria": [
+    "Unit behavior is correct",
+    "Browser workflow works",
+    "Lint and typing checks pass"
+  ],
+  "checks": [
+    {
+      "id": "unit",
+      "kind": "pytest",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit"
+      ]
+    },
+    {
+      "id": "browser",
+      "kind": "e2e",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/e2e"
+      ]
+    },
+    {
+      "id": "lint",
+      "kind": "lint",
+      "argv": [
+        "ruff",
+        "check",
+        ".",
+        "--no-cache"
+      ]
+    },
+    {
+      "id": "types",
+      "kind": "typecheck",
+      "argv": [
+        "mypy",
+        "--no-incremental",
+        "src"
+      ]
+    }
+  ]
+}

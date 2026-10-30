@@ -1,0 +1,26 @@
+name: Harness CI
+on:
+  push:
+    branches: [feat/pi-long-running-isolated-eval]
+  pull_request:
+    paths: [src/**, tests/**, package.json, .github/workflows/ci.yml]
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Pi SDK dependency installation
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify Pi SDK exports
+        run: node --input-type=module -e 'import {createAgentSession, ModelRuntime, SessionManager} from "@earendil-works/pi-coding-agent"; if(!createAgentSession||!ModelRuntime||!SessionManager)process.exit(1)'
+      - name: Syntax
+        run: |
+          for f in src/*.mjs tests/*.mjs; do node --check "$f"; done
+      - name: Unit and workflow tests
+        run: npm test
