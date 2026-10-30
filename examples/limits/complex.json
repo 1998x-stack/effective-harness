@@ -1,0 +1,15 @@
+{
+  "goal": "Implement both src/eventstore.py and src/engine.py. Event store requirements are the same as the medium task: durable SQLite optimistic concurrency, global sequence, exact event-ID replay, conflicting reuse, canonical payload, snapshots and restart. DurableEngine(path,specs,capacity) is a SQLite-backed DAG executor: validate duplicate IDs, missing dependencies, cycles, nonpositive capacity/units/max_attempts and units above capacity with InvalidGraph. Reopening with changed specs or capacity also raises InvalidGraph. Persist each task's status, attempts, next_at, lease_until, token and result. Initially tasks are pending. ready(now) returns a deterministic greedy wave of eligible tasks, descending priority then ascending ID, fitting remaining capacity after running leases; dependencies must have succeeded in earlier calls, never merely be in the same wave. claim(task_id,now,lease_seconds) atomically reserves capacity, increments attempts, and returns a unique token; reject nonready tasks and nonpositive leases. complete and fail require the live token and time strictly before lease_until, otherwise raise StaleLease. complete marks succeeded and stores result. fail requeues with next_at=now+2**(attempts-1) when attempts remain; otherwise marks failed and transitively blocks dependents. ready(now) expires leases at or after lease_until and treats expiration like failure, with the same retry/backoff or terminal propagation. Restart preserves state and live leases. Two independent connections cannot both claim a task. Keep public APIs and do not edit tests.",
+  "criteria": [
+    "The event store passes durable concurrency, replay and snapshot checks",
+    "The DAG engine validates graphs and schedules deterministically within capacity",
+    "Leases, retries, backoff, stale tokens and terminal propagation behave correctly",
+    "Pipeline state and audit events survive process restart"
+  ],
+  "checks": [
+    {"id":"unit","kind":"pytest","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/unit/test_eventstore.py","tests/unit/test_engine.py"]},
+    {"id":"flow","kind":"e2e","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/e2e/test_eventstore_flow.py","tests/e2e/test_engine_flow.py"]},
+    {"id":"lint","kind":"lint","argv":["ruff","check","src","--no-cache"]},
+    {"id":"types","kind":"typecheck","argv":["mypy","--no-incremental","src"]}
+  ]
+}

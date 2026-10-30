@@ -1,0 +1,15 @@
+{
+  "goal": "Extend the existing durable SQLite DAG engine in src/engine.py without regressing the event store or earlier engine behavior. Add claim_batch(now,lease_seconds=30): atomically claim exactly the deterministic ready wave and return an ordered tuple of (task_id, unique_token) pairs; an empty wave has no side effects. Add renew(task_id,token,now,extend_seconds): require a matching live lease strictly before expiry, positive extension, and set lease_until=max(previous lease_until,now)+extend_seconds. Add cancel(task_id,now): pending or running tasks become cancelled, running token is invalidated, capacity is released, and all transitive pending dependents become blocked; repeated cancel is idempotent, while cancelling a succeeded task raises ValueError. Add durable history(after_sequence=0) returning an immutable tuple of Transition records with sequence, task_id, action, at, attempt. Record each successful claim, renew, complete, fail, expiry, cancel, and dependent block exactly once in chronological transaction order, with actions named claim/renew/complete/fail/expire/cancel/block. Expiry and blocking may be triggered by ready(now), and repeated calls cannot duplicate events. Migrate an existing engine database that lacks a history table without losing state. Ensure concurrent independent connections cannot duplicate batch claims. Preserve all existing public APIs and behavior, and do not edit tests.",
+  "criteria": [
+    "Existing event store and DAG behavior remain correct",
+    "Batch claiming and renewal are atomic and capacity safe under concurrency",
+    "Cancellation invalidates leases and blocks descendants deterministically",
+    "Durable transition history is complete, ordered, deduplicated and survives restart"
+  ],
+  "checks": [
+    {"id":"unit","kind":"pytest","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/unit/test_eventstore.py","tests/unit/test_engine.py","tests/unit/test_engine_extension.py","tests/unit/test_engine_holdout.py"]},
+    {"id":"flow","kind":"e2e","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/e2e/test_eventstore_flow.py","tests/e2e/test_engine_flow.py","tests/e2e/test_engine_extension_flow.py"]},
+    {"id":"lint","kind":"lint","argv":["ruff","check","src","--no-cache"]},
+    {"id":"types","kind":"typecheck","argv":["mypy","--no-incremental","src"]}
+  ]
+}

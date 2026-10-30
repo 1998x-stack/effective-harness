@@ -1,0 +1,14 @@
+{
+  "goal": "Implement the three public functions in src/importer.py as a production-style CSV import pipeline. Accept a UTF-8 BOM and any header order with all required columns id,owner,amount,date; ignore extra columns and parse RFC-style quoted CSV. Normalize IDs with Unicode NFKC, strip and casefold; normalize owner by trimming and collapsing Unicode whitespace. Amount must be a strictly positive plain decimal with one or two fractional digits and no surrounding spaces, converted exactly to cents. Date must be a real Gregorian date in YYYY-MM-DD form. Collect row errors with physical line numbers and skip invalid rows while preserving valid rows. Deduplicate by normalized ID using newest date, or later row on a tie, while retaining each ID's first-seen position. import_to_file must return the parse result, create parent directories, and atomically replace a deterministic UTF-8 JSON array only when there are no errors; on errors leave any prior file untouched. load_records must recreate the immutable Record tuple and propagate missing-file errors. Keep the declared API and do not edit tests.",
+  "criteria": [
+    "CSV header, quoting, Unicode normalization, exact money and date validation work",
+    "Errors are collected with line numbers and deduplication is deterministic",
+    "Snapshot writes are atomic and round-trip without replacing prior output on errors"
+  ],
+  "checks": [
+    {"id":"unit","kind":"pytest","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/unit/test_importer.py"]},
+    {"id":"flow","kind":"e2e","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/e2e/test_import_flow.py"]},
+    {"id":"lint","kind":"lint","argv":["ruff","check","src","--no-cache"]},
+    {"id":"types","kind":"typecheck","argv":["mypy","--no-incremental","src"]}
+  ]
+}

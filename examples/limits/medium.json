@@ -1,0 +1,14 @@
+{
+  "goal": "Implement src/eventstore.py as a durable SQLite event store using only the Python standard library. SQLiteEventStore(path) creates parent directories and schema. append(stream, expected_version, event_id, kind, payload) atomically assigns a per-stream version starting at 1 and a global sequence starting at 1. Empty identifiers are invalid. expected_version must equal current stream version, or raise VersionConflict without writing. Event IDs are globally unique: an exact replay with the same stream, kind and canonical payload returns the original Event even if expected_version is now stale; conflicting reuse raises DuplicateEvent. Payloads must be copied and JSON-encoded canonically so caller mutation and key order cannot change persisted meaning. read(stream, after_version) and read_all(after_sequence) return ascending immutable tuples. save_snapshot(stream, version, state) requires that version to exist for the stream and move strictly forward relative to any prior snapshot, otherwise raise VersionConflict. load_snapshot returns an independent copy or None. close releases the connection. Reopen must preserve all data and two independent connections must enforce optimistic concurrency. Keep the declared API and do not edit tests.",
+  "criteria": [
+    "Optimistic concurrency, global sequence and per-stream versions are atomic",
+    "Exact replay is idempotent while conflicting event ID reuse is rejected",
+    "Events and snapshots persist across restart and support projection rebuild"
+  ],
+  "checks": [
+    {"id":"unit","kind":"pytest","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/unit/test_eventstore.py"]},
+    {"id":"flow","kind":"e2e","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/e2e/test_eventstore_flow.py"]},
+    {"id":"lint","kind":"lint","argv":["ruff","check","src","--no-cache"]},
+    {"id":"types","kind":"typecheck","argv":["mypy","--no-incremental","src"]}
+  ]
+}
