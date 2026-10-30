@@ -1,6 +1,11 @@
 import path from 'node:path';
 import {mkdir,writeFile} from 'node:fs/promises';
 
+export function buildModelConfig({baseUrl='https://api.deepseek.com',modelId='deepseek-flash',contextWindow=131072,maxTokens=8192}={}){
+  return {providers:{'deepseek-harness':{baseUrl,api:'openai-completions',apiKey:'$DEEPSEEK_API_KEY',
+    models:[{id:modelId,name:'DeepSeek V4.1 Flash',reasoning:false,input:['text'],contextWindow,maxTokens}]}}};
+}
+
 export class PiAgent{
   constructor({dataDir,apiKey,baseUrl='https://api.deepseek.com',modelId='deepseek-flash',thinkingLevel='off',contextWindow=131072,maxTokens=8192,timeoutMs=240000}){
     if(!apiKey)throw Error('DEEPSEEK_API_KEY required');
@@ -11,8 +16,7 @@ export class PiAgent{
     const agentDir=path.join(this.dataDir,'pi-config');
     await mkdir(agentDir,{recursive:true});
     const modelsPath=path.join(agentDir,'models.json');
-    const config={providers:{'deepseek-harness':{baseUrl:this.baseUrl,api:'openai-completions',apiKey:'$DEEPSEEK_API_KEY',
-      models:[{id:this.modelId,name:'DeepSeek V4.1 Flash',reasoning:false,input:['text'],contextWindow:this.contextWindow,maxTokens:this.maxTokens}]} }};
+    const config=buildModelConfig(this);
     await writeFile(modelsPath,JSON.stringify(config)+'\n',{mode:0o600});
     const runtime=await ModelRuntime.create({modelsPath,authPath:path.join(agentDir,'auth.json'),allowModelNetwork:false});
     await runtime.setRuntimeApiKey('deepseek-harness',this.apiKey);
