@@ -22,13 +22,13 @@ export function parseVerdict(text){
   if(!v||!['PASS','FAIL','INCONCLUSIVE'].includes(v.verdict)||!Array.isArray(v.criteriaPassed)||v.criteriaPassed.some(c=>typeof c!=='string'))throw Error('invalid judge response');
   return {verdict:v.verdict,criteriaPassed:v.criteriaPassed,notes:String(v.notes||'').slice(0,3000)};
 }
-export async function evaluate({task,results,baseline,runId,commit,contractHash,judge}){
+export async function evaluate({task,results,baseline,runId,commit,contractHash,testSources=[],judge}){
   const verified=verifyEvidence({checks:task.checks,results,baseline,runId,commit,contractHash});
   // Deterministic failures never need an additional LLM call to resolve.
   if(!verified.passed)return {passed:false,verified,llm:{verdict:'NOT_RUN'},reason:'deterministic_failure'};
   const evidence=results.map(r=>({id:r.id,kind:r.kind,code:r.code,passed:r.passed,stdout:r.stdout.slice(-1500),stderr:r.stderr.slice(-1500),evidenceHash:r.evidenceHash}));
   let llm={verdict:'INCONCLUSIVE',criteriaPassed:[],notes:'Judge unavailable'};
-  try{llm=parseVerdict(await judge({goal:task.goal,criteria:task.criteria,commit,evidence}));}
+  try{llm=parseVerdict(await judge({goal:task.goal,criteria:task.criteria,commit,evidence,testSources}));}
   catch(e){llm={verdict:'INCONCLUSIVE',criteriaPassed:[],notes:String(e.message).slice(0,500)};}
   const passed=llm.verdict==='PASS'&&task.criteria.every(c=>llm.criteriaPassed.includes(c));
   return {passed,verified,llm,reason:passed?'verified':'judge_not_pass'};
