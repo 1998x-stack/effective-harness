@@ -1,4 +1,4 @@
-# Effective Harness — Pi + DeepSeek
+# Effective Harness — Pi isolated evaluation
 
 Focused long-running coding agent harness inspired by [Anthropic's Harness Design](https://www.anthropic.com/research/harness-design-long-running-apps).
 
@@ -11,7 +11,7 @@ The root of this branch contains only this implementation. Earlier tutorial arti
 - Node.js >=22.19 and Git, using Node built-ins for control-plane code.
 - `@earendil-works/pi-coding-agent@1.4.0` is the **only runtime npm dependency**.
 - Docker and a prebuilt Python/Playwright test image for independent checks.
-- DeepSeek V4.1 Flash via `DEEPSEEK_MODEL=deepseek-flash`, base URL `https://api.deepseek.com`.
+- Pi model `iagent/iagent/standard` by default. Configure it in `~/.pi/agent/models.json` and verify with `pi auth check --provider iagent --model iagent/standard`.
 
 ```bash
 cp .env.example .env
@@ -30,4 +30,4 @@ The sample expects `tests/unit`, `tests/e2e`, and `src` inside your target repos
 
 **Verifier:** each check output includes a Run ID, Commit SHA, contract hash, test command, exit code and digest. Hashes provide consistency, not cryptographic proof that a malicious host did not forge evidence. Prior-passing suites must not regress. Judge failure, missing results, skipped/zero pytest tests, timeout and incompatible evidence are all non-PASS.
 
-**Limitations:** Real Docker, browser and DeepSeek E2E require local credentials and runtime. CI covers deterministic unit tests and the actual package import. Planning/continuous-build/round-QA follows the second Anthropic iteration; Sprint Contract and interactive browser MCP are not yet implemented. Resume occurs at state boundaries and may repeat an interrupted agent step; untrusted workspaces need process isolation.
+**Limitations:** Real Docker, browser and model E2E require local credentials and runtime. CI covers deterministic unit tests and the actual package import. Planning/continuous-build/round-QA follows the second Anthropic iteration; Sprint Contract and interactive browser MCP are not yet implemented. Resume occurs at state boundaries and may repeat an interrupted agent step; untrusted workspaces need process isolation.

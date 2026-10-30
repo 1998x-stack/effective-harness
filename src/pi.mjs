@@ -1,32 +1,24 @@
 import path from 'node:path';
-import {mkdir,writeFile} from 'node:fs/promises';
-
-export function buildModelConfig({baseUrl='https://api.deepseek.com',modelId='deepseek-flash',contextWindow=131072,maxTokens=8192}={}){
-  return {providers:{'deepseek-harness':{baseUrl,api:'openai-completions',apiKey:'$DEEPSEEK_API_KEY',
-    models:[{id:modelId,name:'DeepSeek V4.1 Flash',reasoning:false,input:['text'],contextWindow,maxTokens}]}}};
-}
+import {mkdir} from 'node:fs/promises';
 
 export class PiAgent{
-  constructor({dataDir,apiKey,baseUrl='https://api.deepseek.com',modelId='deepseek-flash',thinkingLevel='off',contextWindow=131072,maxTokens=8192,timeoutMs=240000}){
-    if(!apiKey)throw Error('DEEPSEEK_API_KEY required');
-    Object.assign(this,{dataDir,apiKey,baseUrl,modelId,thinkingLevel,contextWindow,maxTokens,timeoutMs});
+  constructor({dataDir,provider='iagent',modelId='iagent/standard',modelsPath,apiKey='',thinkingLevel='high',timeoutMs=1800000}){
+    if(!modelsPath)throw Error('Pi models path required');
+    Object.assign(this,{dataDir,provider,modelId,modelsPath,apiKey,thinkingLevel,timeoutMs});
   }
   async query(s,role,prompt){
     const {createAgentSession,ModelRuntime,SessionManager}=await import('@earendil-works/pi-coding-agent');
     const agentDir=path.join(this.dataDir,'pi-config');
     await mkdir(agentDir,{recursive:true});
-    const modelsPath=path.join(agentDir,'models.json');
-    const config=buildModelConfig(this);
-    await writeFile(modelsPath,JSON.stringify(config)+'\n',{mode:0o600});
-    const runtime=await ModelRuntime.create({modelsPath,authPath:path.join(agentDir,'auth.json'),allowModelNetwork:false});
-    await runtime.setRuntimeApiKey('deepseek-harness',this.apiKey);
-    const model=runtime.getModel('deepseek-harness',this.modelId);
-    if(!model)throw Error('DeepSeek provider registration failed');
+    const runtime=await ModelRuntime.create({modelsPath:this.modelsPath,authPath:path.join(agentDir,'auth.json'),allowModelNetwork:false});
+    if(this.apiKey)await runtime.setRuntimeApiKey(this.provider,this.apiKey);
+    const model=runtime.getModel(this.provider,this.modelId);
+    if(!model)throw Error('Pi model unavailable: '+this.provider+'/'+this.modelId);
     const sessionDir=path.join(this.dataDir,'runs',s.id,'sessions','generator');
     if(role==='generator')await mkdir(sessionDir,{recursive:true});
     const sessionManager=role==='generator'?SessionManager.continueRecent(s.workspace,sessionDir):SessionManager.inMemory();
     const options={cwd:s.workspace,agentDir,modelRuntime:runtime,model,thinkingLevel:this.thinkingLevel,sessionManager,
-      ...(role==='generator'?{tools:['read','grep','find','ls','edit','write']}:{noTools:true})};
+      ...(role==='generator'?{tools:['read','grep','find','ls','edit','write']}:{noTools:'all'})};
     const {session}=await createAgentSession(options);
     let timedOut=false;
     const stop=setTimeout(()=>{timedOut=true;session.abort().catch(()=>{});},this.timeoutMs);

@@ -21,4 +21,4 @@ No circular imports. `contracts.mjs` defines the task schema; `process.mjs` runs
 ## Verification matrix
 
 CI: syntax, Pi package exports, unit and fake-runner end-to-end.
-Operator: docker image build, real pytest/E2E/lint/typecheck, DeepSeek tool calls, interrupted run recovery.
+Operator: docker image build, real pytest/E2E/lint/typecheck, Pi model tool calls, interrupted run recovery.

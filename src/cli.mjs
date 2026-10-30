@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import path from 'node:path';
+import os from 'node:os';
 import {readFile} from 'node:fs/promises';
 import {Workflow} from './workflow.mjs';
 import {PiAgent} from './pi.mjs';
@@ -14,12 +15,11 @@ async function main(){
     console.log(JSON.stringify({id:s.id,status:s.status,phase:s.phase,round:s.round,verifiedCommit:s.verifiedCommit||null},null,2));return;
   }
   if(!['run','resume'].includes(action)){console.log('Usage: npm start -- run <repo> <task.json> | resume <run-id> | status <run-id>');return;}
-  const key=process.env.DEEPSEEK_API_KEY;
-  if(!key)throw Error('Set DEEPSEEK_API_KEY in .env');
-  const agent=new PiAgent({dataDir:dir,apiKey:key,baseUrl:process.env.DEEPSEEK_BASE_URL||'https://api.deepseek.com',
-    modelId:process.env.DEEPSEEK_MODEL||'deepseek-flash',thinkingLevel:process.env.PI_THINKING_LEVEL||'off',
-    contextWindow:Number(process.env.PI_CONTEXT_WINDOW||131072),maxTokens:Number(process.env.PI_MAX_OUTPUT_TOKENS||8192),
-    timeoutMs:Number(process.env.HARNESS_AGENT_TIMEOUT_MS||240000)});
+  const agent=new PiAgent({dataDir:dir,provider:process.env.PI_PROVIDER||'iagent',
+    modelId:process.env.PI_MODEL||'iagent/standard',
+    modelsPath:path.resolve(process.env.PI_MODELS_PATH||path.join(os.homedir(),'.pi/agent/models.json')),
+    apiKey:process.env.PI_API_KEY||process.env.IAUTO_API_KEY||'',thinkingLevel:process.env.PI_THINKING_LEVEL||'high',
+    timeoutMs:Number(process.env.HARNESS_AGENT_TIMEOUT_MS||1800000)});
   const workflow=new Workflow({dataDir:dir,agent,image:process.env.HARNESS_TEST_IMAGE||'effective-harness-tests:local',
     maxRounds:Number(process.env.HARNESS_MAX_ROUNDS||3),timeoutMs:Number(process.env.HARNESS_TEST_TIMEOUT_MS||120000)});
   let id=arg1;
