@@ -1,0 +1,15 @@
+{
+  "goal": "Implement src.scheduler.schedule as a deterministic dependency-aware batch scheduler. Each wave may include only jobs whose dependencies completed in earlier waves, with total units at most capacity. Among eligible jobs, choose descending priority then ascending ID, greedily filling a wave; when a job does not fit, consider later jobs. Reject nonpositive capacity or units above capacity with ValueError containing 'capacity'; duplicate IDs with 'duplicate'; unknown dependencies with 'dependency'; cycles with 'cycle'. Preserve public types and signature.",
+  "criteria": [
+    "Priority and capacity determine deterministic waves",
+    "Dependencies run only after their prerequisites finish",
+    "Invalid resource and dependency graphs are rejected",
+    "Pipeline integration passes"
+  ],
+  "checks": [
+    {"id":"unit","kind":"pytest","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/unit/test_scheduler.py"]},
+    {"id":"flow","kind":"e2e","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/e2e/test_scheduler_flow.py"]},
+    {"id":"lint","kind":"lint","argv":["ruff","check","src","--no-cache"]},
+    {"id":"types","kind":"typecheck","argv":["mypy","--no-incremental","src"]}
+  ]
+}

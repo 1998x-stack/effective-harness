@@ -15,16 +15,16 @@ The root of this branch contains only this implementation. Earlier tutorial arti
 
 ```bash
 cp .env.example .env
-# put DEEPSEEK_API_KEY in .env (never commit)
 npm install
 npm test
 docker build -t effective-harness-tests:local -f docker/Dockerfile .
 npm start -- run /absolute/path/to/clean/git/repository examples/task.json
 npm start -- status <run-id>
 npm start -- resume <run-id>
+node scripts/long-eval.mjs all
 ```
 
-The sample expects `tests/unit`, `tests/e2e`, and `src` inside your target repository. E2E should start the app and browser inside the container; outbound network is disabled.
+The generic sample expects `tests/unit`, `tests/e2e`, and `src` inside your target repository. E2E should start the app and browser inside the container; outbound network is disabled. The three benchmark tasks in `examples/long-running/` use API integration checks instead of a browser. Build their smaller image with `docker build -t effective-harness-benchmark:local -f docker/Benchmark.Dockerfile .` before running them. The benchmark script creates isolated seed repositories under `.harness-data/benchmarks/`, caps the simple, medium, and complex runs at 30, 60, and 120 minutes, and records `run.log`, `timeline.jsonl`, run state, and Pi session transcripts. The durations are budgets, not guaranteed elapsed times.
 
 **Security boundary:** only *committed* candidate source is exported to an archive using `git archive`. The archive is copied into a container-private tmpfs. Docker runs with no network, read-only root, all capabilities dropped, nonroot UID, and CPU/RAM/PID/time limits. No secrets are intentionally mounted. Protected tests and configuration cannot be changed by the generator. This is defense in depth, not a secure multi-tenant sandbox; generator Pi tools still run on the host. Only run trusted repositories.
 

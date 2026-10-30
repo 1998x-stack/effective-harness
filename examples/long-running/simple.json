@@ -1,0 +1,14 @@
+{
+  "goal": "Implement src.records.normalize_record for imported display names. Strip leading and trailing whitespace, collapse all internal Unicode whitespace runs to one ASCII space, lowercase with Unicode casefold, and reject an empty normalized result with ValueError containing 'empty'. Keep its public function signature.",
+  "criteria": [
+    "Whitespace and case normalization match the documented canonical form",
+    "Empty input is rejected",
+    "Import deduplication integration passes"
+  ],
+  "checks": [
+    {"id":"unit","kind":"pytest","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/unit/test_records.py"]},
+    {"id":"flow","kind":"e2e","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/e2e/test_records_flow.py"]},
+    {"id":"lint","kind":"lint","argv":["ruff","check","src","--no-cache"]},
+    {"id":"types","kind":"typecheck","argv":["mypy","--no-incremental","src"]}
+  ]
+}

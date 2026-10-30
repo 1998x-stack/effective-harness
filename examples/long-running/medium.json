@@ -1,0 +1,14 @@
+{
+  "goal": "Implement src.events.project_events as an ordered projection of per-ID upsert and delete events. Sequence numbers must strictly increase per ID, except an exact replay of the immediately previous event, which is idempotent. Reject conflicting or decreasing sequence numbers with ValueError containing 'sequence'. Reject unknown actions with ValueError containing 'action'. Deletion removes the visible value but preserves sequence history. Keep public types and signature.",
+  "criteria": [
+    "Upsert and delete project the expected current state",
+    "Exact replay is idempotent while conflicting sequence is rejected",
+    "Projection rebuild integration passes"
+  ],
+  "checks": [
+    {"id":"unit","kind":"pytest","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/unit/test_events.py"]},
+    {"id":"flow","kind":"e2e","argv":["python","-m","pytest","-q","-p","no:cacheprovider","tests/e2e/test_events_flow.py"]},
+    {"id":"lint","kind":"lint","argv":["ruff","check","src","--no-cache"]},
+    {"id":"types","kind":"typecheck","argv":["mypy","--no-incremental","src"]}
+  ]
+}
