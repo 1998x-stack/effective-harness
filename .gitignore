@@ -1,7 +1,15 @@
 .env
 .env.local
+.env.*
+!.env.example
 .harness-data/
 node_modules/
 dist/
 coverage/
+.debug-journal.md
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .DS_Store
