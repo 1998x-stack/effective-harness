@@ -2,9 +2,9 @@ import {realpath} from 'node:fs/promises';
 import {digest,validateChecks} from './contracts.mjs';
 import {runCommand} from './process.mjs';
 import {archiveCommit} from './workspace.mjs';
-export function dockerArguments(archive,check,image){
+export function dockerArguments(archive,check,image,runId){
   if(!/^[a-zA-Z0-9_./:@-]{3,180}$/.test(image))throw Error('invalid Docker image');
-  return ['run','--rm','--network','none','--read-only','--cap-drop','ALL',
+  return ['run','--rm',...(runId?['--label','effective-harness-run='+runId]:[]),'--network','none','--read-only','--cap-drop','ALL',
     '--security-opt','no-new-privileges','--pids-limit','128','--cpus','2','--memory','1g',
     '--user','1000:1000','--tmpfs','/tmp:rw,nosuid,size=128m,mode=1777',
     '--tmpfs','/work:rw,nosuid,size=512m,mode=1777',
@@ -26,11 +26,11 @@ export async function runIsolated({workspace,checks,runId,commit,contractHash,im
   validateChecks(checks);
   if(!/^[0-9a-f]{40}$/.test(commit)||!/^[0-9a-f]{64}$/.test(contractHash))throw Error('invalid commit or contract SHA');
   const root=await realpath(workspace);
-  const snap=await archive(root,commit);
+  const snap=await archive(root,commit,{runId});
   try{
     const results=[];
     for(const check of checks){
-      const raw=await execute('docker',dockerArguments(snap.file,check,image),{timeoutMs,maxBytes});
+      const raw=await execute('docker',dockerArguments(snap.file,check,image,runId),{timeoutMs,maxBytes});
       results.push(makeEvidence({raw,check,runId,commit,contractHash}));
     }
     return results;

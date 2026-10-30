@@ -33,17 +33,19 @@ export async function snapshot(workspace,base,protectedPrefixes,round){
   await git(workspace,'-c','user.name=Harness','-c','user.email=harness@localhost','commit','-m', 'harness candidate '+round);
   return git(workspace,'rev-parse','HEAD');
 }
-export async function archiveCommit(workspace,commit,{maxBytes=100_000_000}={}){
+export async function archiveCommit(workspace,commit,{maxBytes=100_000_000,runId}={}){
   if(!/^[0-9a-f]{40}$/.test(commit))throw Error('invalid commit');
-  const dir=await mkdtemp(path.join(os.tmpdir(),'harness-archive-')),file=path.join(dir,'candidate.tar');
+  if(runId&&!/^run-[0-9a-f]{16}$/.test(runId))throw Error('invalid run ID');
+  const dir=await mkdtemp(path.join(os.tmpdir(),`harness-archive-${runId?runId+'-':''}`)),file=path.join(dir,'candidate.tar');
   try{
-    await new Promise((resolve,reject)=>{
-      const p=spawn('git',['-C',workspace,'archive','--format=tar',commit],{stdio:['ignore','pipe','pipe']});
-      let err='';p.stderr.on('data',b=>{err+=b.toString().slice(0,1000)});
-      pipeline(p.stdout,createWriteStream(file,{mode:0o600})).catch(reject);
+    const p=spawn('git',['-C',workspace,'archive','--format=tar',commit],{stdio:['ignore','pipe','pipe']});
+    let err='';p.stderr.on('data',b=>{err+=b.toString().slice(0,1000)});
+    const written=pipeline(p.stdout,createWriteStream(file,{mode:0o644}));
+    const closed=new Promise((resolve,reject)=>{
       p.once('error',reject);
       p.once('close',code=>code===0?resolve():reject(Error('git archive failed: '+err)));
     });
+    await Promise.all([written,closed]);
     const n=(await stat(file)).size;
     if(n<=0||n>maxBytes)throw Error('snapshot archive outside size budget');
     return {file,cleanup:()=>rm(dir,{recursive:true,force:true})};

@@ -44,8 +44,9 @@ test('contract schema and protected paths',()=>{
  assert.throws(()=>validateTask({...task,criteria:[]}),/invalid goal/);
 });
 test('Docker runner has isolated snapshot and no network',()=>{
- const args=dockerArguments('/tmp/candidate.tar',checks[0],'effective-harness-tests:local');
+ const args=dockerArguments('/tmp/candidate.tar',checks[0],'effective-harness-tests:local',runId);
  for(const required of ['none','--read-only','--cap-drop','ALL','--pids-limit','1000:1000'])assert.ok(args.includes(required));
+ assert.ok(args.includes('effective-harness-run='+runId));
  assert.ok(args.includes('type=bind,src=/tmp/candidate.tar,dst=/snapshot.tar,readonly'));
  assert.deepEqual(args.slice(-5),['python','-m','pytest','-q','tests/unit']);
 });
@@ -83,8 +84,9 @@ test('archive is tied to commit, not uncommitted workspace content',async()=>{
  try{
   const sha=await git(repo,'rev-parse','HEAD');
   await writeFile(path.join(repo,'app.py'),'INJECTED UNCOMMITTED\n');
-  const archive=await archiveCommit(repo,sha);
+  const archive=await archiveCommit(repo,sha,{runId});
   try{
+   assert.ok(path.basename(path.dirname(archive.file)).startsWith('harness-archive-'+runId+'-'));
    const tar=execFileSync('tar',['-xOf',archive.file,'app.py'],{encoding:'utf8'});
    assert.match(tar,/return 1/);assert.doesNotMatch(tar,/INJECTED/);
   }finally{await archive.cleanup();}
