@@ -28,10 +28,13 @@ export class PiAgent{
     const options={cwd:s.workspace,agentDir,modelRuntime:runtime,model,thinkingLevel:this.thinkingLevel,sessionManager,
       ...(role==='generator'?{tools:['read','grep','find','ls','edit','write']}:{noTools:true})};
     const {session}=await createAgentSession(options);
-    const stop=setTimeout(()=>{session.abort().catch(()=>{});},this.timeoutMs);
+    let timedOut=false;
+    const stop=setTimeout(()=>{timedOut=true;session.abort().catch(()=>{});},this.timeoutMs);
     try{
       await session.prompt(prompt);
-      if(session.messages.some(m=>m.role==='assistant'&&(m.stopReason==='error'||m.errorMessage)))throw Error('Pi model returned an error');
+      if(timedOut)throw Error('Pi session timed out');
+      const latest=[...session.messages].reverse().find(m=>m.role==='assistant');
+      if(!latest||latest.stopReason==='error'||latest.errorMessage)throw Error(latest?.errorMessage||'Pi model returned an error');
       const result=session.getLastAssistantText();
       if(!result||!result.trim())throw Error('empty Pi response');
       return result;
