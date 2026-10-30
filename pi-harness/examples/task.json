@@ -1,0 +1,57 @@
+{
+  "goal": "Fix an existing Python application without breaking its public API or browser user journey.",
+  "criteria": [
+    "Existing unit tests pass",
+    "Main user workflow works in the browser",
+    "Lint and typing checks pass"
+  ],
+  "checks": [
+    {
+      "id": "unit",
+      "kind": "pytest",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit"
+      ]
+    },
+    {
+      "id": "browser",
+      "kind": "e2e",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/e2e"
+      ]
+    },
+    {
+      "id": "lint",
+      "kind": "lint",
+      "argv": [
+        "ruff",
+        "check",
+        "."
+      ]
+    },
+    {
+      "id": "types",
+      "kind": "typecheck",
+      "argv": [
+        "mypy",
+        "src"
+      ]
+    }
+  ],
+  "protectedPrefixes": [
+    "contracts/",
+    "evals/"
+  ]
+}
