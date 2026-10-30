@@ -8,6 +8,7 @@ import {digest,validateTask,validateChecks,isProtected} from '../src/contracts.m
 import {dockerArguments,makeEvidence,runIsolated} from '../src/runner.mjs';
 import {verifyEvidence,evaluate,parseVerdict} from '../src/evaluator.mjs';
 import {Workflow} from '../src/workflow.mjs';
+import {StateStore} from '../src/store.mjs';
 import {git,archiveCommit} from '../src/workspace.mjs';
 const checks=[
 {id:'unit',kind:'pytest',argv:['python','-m','pytest','-q','tests/unit']},
@@ -122,5 +123,26 @@ test('workflow rejects modifications to protected files',async()=>{
   const w=new Workflow({dataDir:path.join(root,'data'),agent,runner:mockRunner});
   const s=await w.create(repo,task),out=await w.execute(s.id);
   assert.equal(out.status,'BLOCKED');assert.match(out.feedback,/protected/);
+ }finally{await rm(root,{recursive:true,force:true});}
+});
+test('state lock recovers after its owner process exits',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'harness-stale-lock-'));
+ try{
+  const store=new StateStore(root),id='run-aaaaaaaaaaaaaaaa';
+  const lock=path.join(root,'runs',id,'lock');
+  await mkdir(path.dirname(lock),{recursive:true});
+  await writeFile(lock,JSON.stringify({pid:99999999,at:'2026-01-01T00:00:00Z'}));
+  const release=await store.lock(id);
+  await release();
+  await assert.rejects(readFile(lock),/ENOENT/);
+ }finally{await rm(root,{recursive:true,force:true});}
+});
+test('state lock refuses to take ownership from a live process',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'harness-live-lock-'));
+ try{
+  const store=new StateStore(root),id='run-aaaaaaaaaaaaaaaa';
+  const release=await store.lock(id);
+  await assert.rejects(store.lock(id),/already locked/);
+  await release();
  }finally{await rm(root,{recursive:true,force:true});}
 });

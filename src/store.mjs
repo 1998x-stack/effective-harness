@@ -13,7 +13,21 @@ export class StateStore{
   }
   async lock(id){
     const dir=path.dirname(this.statePath(id));await mkdir(dir,{recursive:true});
-    const file=path.join(dir,'lock');const handle=await open(file,'wx',0o600);
+    const file=path.join(dir,'lock');let handle;
+    try{handle=await open(file,'wx',0o600);}
+    catch(error){
+      if(error.code!=='EEXIST')throw error;
+      const recovery=path.join(dir,'lock.recovery');
+      const gate=await open(recovery,'wx',0o600);
+      try{
+        const owner=JSON.parse(await readFile(file,'utf8'));
+        if(!Number.isInteger(owner.pid)||owner.pid<=0)throw Error('invalid run lock owner');
+        try{process.kill(owner.pid,0);throw Error('run already locked by pid '+owner.pid);}
+        catch(checkError){if(checkError.code!=='ESRCH')throw checkError;}
+        await rm(file);
+        handle=await open(file,'wx',0o600);
+      }finally{await gate.close();await rm(recovery,{force:true});}
+    }
     await handle.writeFile(JSON.stringify({pid:process.pid,at:new Date().toISOString()}));
     return async()=>{await handle.close();await rm(file,{force:true});};
   }
