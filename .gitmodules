@@ -1,0 +1,3 @@
+[submodule "examples/rsync-python"]
+	path = examples/rsync-python
+	url = git@github.com:1998x-stack/local-rsync-python.git
